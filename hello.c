@@ -1,27 +1,21 @@
 #include<stdio.h>
-#include<string.h>
-
-
-typedef struct book
-{
-    char a[100];
-    int b;
-}book;
-
-
-int main(){
-    int k=0,h;
-    printf("输入书的数量");
-    scanf("%d",h);
-    char g[100];
-    book arr[h];
-    for(int i=0;i<h;i++){
-        printf("输入书名和价格\n");
-        scanf("%c%d",arr[i].a,&(arr[i].b));
-        if(arr[i].b>=k){
-            k=arr[i].b;
-            strcpy(g,arr[i].a);
+#include<stdarg.h>
+int min(int count,...){
+    int min,a;
+    va_list(aq);
+    va_start(aq,count);
+    min=va_arg(aq,int);
+    for(int i=2;i<=count;i++){
+        if((a=va_arg(aq,int))<min){
+            min=a;
         }
     }
-    print("最贵的书是%s,price%d",g,k);
+    va_end(aq);
+    return min;
+    
+}
+int main(){
+    int count=5;
+    int a=min(count,1,2,3,4,5);
+    printf("%d",a);
 }
