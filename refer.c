@@ -205,7 +205,79 @@
 //     fclose(file);
 //     return 0;
 // }
-#include <stdio.h>
+// #include <stdio.h>
+// #define File "C:\\Users\\12281\\Desktop\\stash.txt"
+
+// int main() {
+//     printf("Which kind of food you want to add (1-3):\n");
+//     int t;
+//     char ch;
+//     char point;
+
+//     // 用户选择
+//     do {
+//         printf("1.staple\t2.cold_dish\t3.hot_dish\n");
+//         printf(" >: ");
+//         scanf("%d", &t);
+//     } while (t != 1 && t != 2 && t != 3);
+
+//     switch (t) {
+//         case 1: point = 'A'; break;
+//         case 2: point = 'B'; break;
+//         case 3: point = 'C'; break;
+//     }
+
+//     // 打开文件
+//     FILE *p = fopen(File, "r");
+//     if (p == NULL) {
+//         perror("无法打开文件");
+//         return 1;
+//     }
+
+//     long position = 0;
+//     int found = 0;
+
+//     // 遍历文件，寻找目标字符
+//     while ((ch = fgetc(p)) != EOF) {
+//         if (ch == point) {
+//             position = ftell(p); // 保存当前字符位置
+//             found = 1;
+//             break;
+//         }
+//     }
+
+//     if (found) {
+//         printf("Found %c at position %ld\n", point, position);
+
+//         // 移动到下一行起始位置
+//         while ((ch = fgetc(p)) != EOF) {
+//             if (ch == '\n') { // 检测换行符
+//                 break; // 停止在换行符后
+//             }
+//         }
+
+//         // 确保跳过空行
+//         while ((ch = fgetc(p)) != EOF) {
+//             if (ch != '\n' && ch != '\r') { // 跳过空行
+//                 fseek(p, -1, SEEK_CUR); // 将指针移动到有效字符位置
+//                 break;
+//             }
+//         }
+
+//         // 打印结果
+//         printf("File pointer is now at: '%c'\n", fgetc(p));
+//         printf("%d\n",ftell(p));
+//     } else {
+//         printf("Character %c not found in the file.\n", point);
+//     }
+    
+//     fclose(p);
+//     return 0;
+// }
+
+
+// 以下是update system
+/*#include <stdio.h>
 #define File "C:\\Users\\12281\\Desktop\\stash.txt"
 
 int main() {
@@ -275,3 +347,90 @@ int main() {
     return 0;
 }
 
+*/
+
+// 以下是 remove system
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#define File "C:\\Users\\12281\\Desktop\\stash.txt"
+
+void remove_dishes_by_type(int dish_type) {
+    FILE *original = fopen(File, "r");
+    if (original == NULL) {
+        perror("无法打开原文件");
+        return;
+    }
+
+    FILE *temp = fopen("temp.txt", "w");
+    if (temp == NULL) {
+        perror("无法创建临时文件");
+        fclose(original);
+        return;
+    }
+
+    int ch, current_type, dish_count = 1;
+    int inside_category = 0, inside_dish = 0;
+
+    while ((ch = fgetc(original)) != EOF) {
+        if (ch >= 'A' && ch <= 'Z' && fgetc(original) == '.') {
+            // 进入新的分类
+            fputc(ch, temp);
+            fputc('.', temp);
+            fputc('\n', temp);
+            inside_category = 1;
+            dish_count = 1; // 重置菜品计数
+        } else if (ch == '1' || ch == '2') {
+            current_type = ch - '0'; // 提取菜品类型
+            if (current_type == dish_type) {
+                // 跳过当前菜品
+                while ((ch = fgetc(original)) != EOF && ch != '$') {
+                    // 忽略菜品内容
+                }
+                fgetc(original); // 跳过换行符
+            } else {
+                // 重新编号并保留菜品
+                fprintf(temp, "%d", dish_count++);
+                while ((ch = fgetc(original)) != EOF) {
+                    fputc(ch, temp);
+                    if (ch == '$') {
+                        fputc('\n', temp);
+                        break;
+                    }
+                }
+            }
+        } else {
+            fputc(ch, temp);
+        }
+    }
+
+    fclose(original);
+    fclose(temp);
+
+    // 替换原文件
+    if (remove(File) != 0) {
+        perror("无法删除原文件");
+        return;
+    }
+
+    if (rename("temp.txt", File) != 0) {
+        perror("无法重命名临时文件");
+        return;
+    }
+
+    printf("所有类型为 '%d' 的菜品删除成功，并重新编号！\n", dish_type);
+}
+
+int main() {
+    int dish_type;
+    printf("请输入要删除的菜品类型（1 或 2）：");
+    scanf("%d", &dish_type);
+
+    if (dish_type == 1 || dish_type == 2) {
+        remove_dishes_by_type(dish_type);
+    } else {
+        printf("无效的菜品类型！请输入 1 或 2。\n");
+    }
+
+    return 0;
+}
