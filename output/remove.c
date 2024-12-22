@@ -5,7 +5,9 @@
 
 
 void delete(int position){
-    FILE *p=fopen(File,"w");
+     
+    FILE *p=fopen(File,"r");
+    fseek(p,position,SEEK_SET);//之前没有移动
     char ch;
     int current_pos=position;
     int seek=0;

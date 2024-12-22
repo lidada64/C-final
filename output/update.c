@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #define File "C:\\Users\\12281\\Desktop\\stash.txt"
-
+//此时大写字母后不加类别名称
 typedef struct hot_dish {
     int num3;
     float price3;
@@ -12,6 +12,7 @@ typedef struct hot_dish {
 
 void append_at_position(long position) {
     int i;
+    
 beginning:
     printf("How many food you would like to add: ");
     scanf("%d", &i);
@@ -55,7 +56,7 @@ beginning:
         printf("\ntaste: ");
         scanf("%s", c.tasteC);
 
-        fprintf(temp, "\n\n>%-10s\n  price:%-10f\n  quantity:%-10d\n  taste:%-10s\n$",
+        fprintf(temp, "\n\n>%-10s\n  price:%-10f\n  quantity:%-10d\n  taste:%-10s\n$\n",
                 c.name3, c.price3, c.num3, c.tasteC);
     }
 
@@ -80,48 +81,81 @@ beginning:
 
     printf("Add successfully!\n");
 }
-
-long move() {
-    printf("Which kind of food you want to add (1-3):\n");
+long move(){
+    printf("Which kind of food you want to add(1-3):\n");
     int t;
-    int ch; // 注意：fgetc 的返回值应为 int
+    char ch;//指针寻找字符
     char point;
-    do {
-        printf("1.staple\t2.cold_dish\t3.hot_dish\n");
-        printf(" >: ");
-        scanf("%d", &t);
-    } while (t != 1 && t != 2 && t != 3);
-
-    switch (t) {
-        case 1: point = 'A'; break;
-        case 2: point = 'B'; break;
-        case 3: point = 'C'; break;
+    do{
+    printf("1.staple\t2.cold_dish\t3.hot_dish\n");
+    printf(" >: ");
+    scanf("%d",&t);
+    }while(t!=1&&t!=2&&t!=3);
+    switch (t)
+    {   
+        case 1:
+        point='A';//指针要找到的字符
+        break;
+        case 2:
+        point='B';
+        break;
+        case 3:
+        point='C';
+        break;
     }
-
-    long position = 0; // 记录指针位置
-    FILE *p = fopen(File, "r");
-    if (p == NULL) {
-        perror("cant open the file");
-        return -1;
-    }
-
+    long position=0;//指针位置
+    //将分类前数字标志改为大写字母
+    FILE *p=fopen(File,"r");
     while ((ch = fgetc(p)) != EOF) {
         if (ch == point) {
+            // 找到了目标字符，保存当前位置
             position = ftell(p);
             break;
         }
-    }
-
-    fclose(p);
-    return position;
+    }//从文件开头遍历文件
+       if (position != 0) {
+        // 移动到目标字符的前一个位置
+        if (fseek(p, position - 1, SEEK_SET/*文件开头*/) != 0) {
+            perror("fseek 失败");
+            fclose(p);
+            return 1;
+        }
+       }
+        fseek(p,0,SEEK_CUR);
+        position=ftell(p);
+     fclose(p);
+     return position;
+   
 }
 
-int main() {
+void delete(int position){
+    
+    FILE *pc=fopen(File,"r");
+    fseek(pc,position,SEEK_CUR);
+    char ch;
+    int seek=0;
+    int i;
+   while ((ch = fgetc(pc)) != EOF && ch != 'E') {
+    char line[100];
+    if (ch == '>') { // 菜品的起始标志
+        fgets(line, sizeof(line), pc); // 读取菜品名称
+        printf("Dish %d: %s", i + 1, line + 1); 
+        i++;
+    } else {
+        // 跳过无关行
+        fgets(line, sizeof(line), pc);
+    }
+    fclose(pc);
+}
+}
+int main(){
     long position = move(); // 获取目标位置
     if (position > 0) {
         append_at_position(position); // 在指定位置追加数据
     } else {
         printf("cant find the position\n");
     }
+    delete(position);
     return 0;
 }
+
